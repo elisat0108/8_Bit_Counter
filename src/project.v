@@ -23,4 +23,25 @@ module tt_um_example (
   
   // Give the control inputs readable names
   wire en   = ui_in[0];  // 1 = count up
-  wire load =
+  wire load = ui_in[1];  // 1 = load a new value on the next clock edge
+  wire oe   = ui_in[2];  // 1 = drive the count out on uio[7:0], 0 = high-Z
+
+  reg[7:0] count;
+
+  always @(posedge clk) begin
+    if (!rst_n)
+      count <= 8'd0;  // reset to 0
+    else if (load)
+      count <= uio_in;            // synchronous load (only on a clock edge)
+    else if (en)
+      count <= count + 8'd1;      // count up
+  end
+
+  assign uio_out = count;
+  assign uio_oe  = {8{oe}};
+  assign uo_out  = count;
+
+  // List all unused inputs to prevent warnings
+  wire _unused = &{ena, ui_in[7:1], uio_in, 1'b0};
+
+endmodule
